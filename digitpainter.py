@@ -57,18 +57,14 @@ class DigitPainter(tk.Frame):
     
     self.resetButton=tk.Button(self.frame,text="Reset",command= self.erase_canvas) 
     self.resetButton.pack(side= tk.LEFT)
-
+	
+    button = tk.Button(self.frame,text="Guardar",
+                      command=lambda: self.predict())
+    button.pack(side=tk.RIGHT)
     self.name = tk.Text(self.master)
     self.name.pack(side=tk.LEFT)
     self.name.insert("end","Nombre Del Archivo")
-    
-    
-        
-  # Add a new classifier with the corresponding button
-  def add_classifier(self,classifier):
-    button = tk.Button(self.frame,text=classifier.name,
-                      command=lambda: self.predict(classifier))
-    button.pack(side=tk.RIGHT)
+
 
       
   # Called when the button is pressed the first time
@@ -109,9 +105,25 @@ class DigitPainter(tk.Frame):
     self.painter.rectangle([0,0,self.imgside,self.imgside],fill='black',outline='black')
      
         
-  def predict(self,classifier):
+  def predict(self,):
     direction="./Imagenes/"+platform.node()+"/"
     Path(direction).mkdir(parents=True, exist_ok=True)
     filescount=len(os.listdir(direction))
     imagepath=direction+self.name.get("1.0","end")[:-1]+"_"+str(filescount)+".png"
     img = self.img.resize((28,28),resampling_filter).save(imagepath)
+    
+    
+root = tk.Tk()
+painter = DigitPainter(master=root)
+
+# Add your own classifiers here (and remember the imports)
+
+
+try:
+    painter.mainloop()
+    
+except KeyboardInterrupt:
+    print("\nGracefully shutting down from Ctrl+C")
+finally:
+    # Any cleanup code here
+    print("\nCleanup complete")
