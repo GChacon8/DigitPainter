@@ -99,7 +99,7 @@
                 img.src = URL.createObjectURL(image);
 
                 tdName.textContent = image.name;
-                tdSubdir.textContent = image.webkitRelativePath.split('/')[2];
+                tdSubdir.textContent = image.webkitRelativePath.split('/')[1];
                 tdImage.appendChild(img);
 
                 tr.appendChild(tdName);
