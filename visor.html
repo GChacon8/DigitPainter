@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recursive Image Search</title>
+<style>
+        #imageTables {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    img {
+        max-width: 100px;
+        max-height: 100px;
+        object-fit: cover;
+    }
+</style>
+</head>
+<body>
+    <input type="file" id="fileInput" webkitdirectory directory multiple>
+    <div id="imageTables" style="display:flex;"></div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            const imageTablesContainer = document.getElementById('imageTables');
+            imageTablesContainer.innerHTML = ''; // Clear existing tables
+
+            const groupedImages = groupImages(files);
+            displayGroupedImages(groupedImages, imageTablesContainer);
+        }
+
+        function groupImages(files) {
+            const groupedImages = {};
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    const groupName = getFileGroupName(file.name, file.webkitRelativePath);
+                    if (!groupedImages[groupName]) {
+                        groupedImages[groupName] = [];
+                    }
+                    groupedImages[groupName].push(file);
+                } else if (file.isDirectory) {
+                    const reader = file.createReader();
+                    reader.readEntries((entries) => {
+                        const subGroupedImages = groupImages(entries);
+                        Object.keys(subGroupedImages).forEach((groupName) => {
+                            if (!groupedImages[groupName]) {
+                                groupedImages[groupName] = [];
+                            }
+                            groupedImages[groupName].push(...subGroupedImages[groupName]);
+                        });
+                    });
+                }
+            }
+            return groupedImages;
+        }
+
+        function getFileGroupName(fileName, filePath) {
+            const match = fileName.match(/^\d/);
+            const subdirName = filePath.split('/')[0]; // Get the first directory name
+            return match ? `${match[0]} - ${subdirName}` : 'Other';
+        }
+
+        function displayGroupedImages(groupedImages, container) {
+            Object.keys(groupedImages).forEach((groupName) => {
+                const table = createImageTable(groupName, groupedImages[groupName]);
+                container.appendChild(table);
+            });
+        }
+
+        function createImageTable(groupName, images) {
+            const table = document.createElement('table');
+            const caption = document.createElement('caption');
+            caption.textContent = `Images for Group ${groupName}`;
+            table.appendChild(caption);
+
+            const tbody = document.createElement('tbody');
+            table.appendChild(tbody);
+
+            images.forEach((image) => {
+                const tr = document.createElement('tr');
+                const tdName = document.createElement('td');
+                const tdSubdir = document.createElement('td');
+                const tdImage = document.createElement('td');
+
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(image);
+
+                tdName.textContent = image.name;
+                tdSubdir.textContent = image.webkitRelativePath.split('/')[2];
+                tdImage.appendChild(img);
+
+                tr.appendChild(tdName);
+                tr.appendChild(tdSubdir);
+                tr.appendChild(tdImage);
+
+                tbody.appendChild(tr);
+            });
+
+            return table;
+        }
+    </script>
+</body>
+</html>
